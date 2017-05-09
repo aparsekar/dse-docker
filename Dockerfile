@@ -11,7 +11,7 @@ RUN set -x \
     && wget -O /usr/local/bin/gosu "https://github.com/tianon/gosu/releases/download/$GOSU_VERSION/gosu-$(dpkg --print-architecture)" \
     && wget -O /usr/local/bin/gosu.asc "https://github.com/tianon/gosu/releases/download/$GOSU_VERSION/gosu-$(dpkg --print-architecture).asc" \
     && export GNUPGHOME="$(mktemp -d)" \
-    && gpg --keyserver ha.pool.sks-keyservers.net --recv-keys B42F6819007F00F88E364FD4036A9C25BF357DD4 \
+    && gpg --keyserver hkp://p80.pool.sks-keyservers.net:80 --recv-keys B42F6819007F00F88E364FD4036A9C25BF357DD4 \
     && gpg --batch --verify /usr/local/bin/gosu.asc /usr/local/bin/gosu \
     && rm -r "$GNUPGHOME" /usr/local/bin/gosu.asc \
     && chmod +x /usr/local/bin/gosu \
@@ -27,7 +27,7 @@ RUN set -x \
                                               python-support \
                                               curl \
     && rm -rf /var/lib/apt/lists/*
-    
+
 # Get the version of DSE we're installing from the build argument
 ARG DSE_VERSION
 ENV DSE_VERSION ${DSE_VERSION}
@@ -41,9 +41,8 @@ ARG DSE_CREDENTIALS_URL
 RUN set -x \
     && export DSE_TEMP="$(mktemp -d)" \
     && cd "$DSE_TEMP" \
-    && curl -SLO "$DSE_CREDENTIALS_URL/.netrc" \
-    && curl --netrc-file .netrc -SLO "http://downloads.datastax.com/enterprise/dse-$DSE_VERSION-bin.tar.gz" \
-    && curl --netrc-file .netrc -SLO "http://downloads.datastax.com/enterprise/dse-$DSE_VERSION-bin.tar.gz.md5" \
+    && curl -u $DSE_CREDENTIALS_URL -SLO "http://downloads.datastax.com/enterprise/dse-$DSE_VERSION-bin.tar.gz" \
+    && curl -u $DSE_CREDENTIALS_URL -SLO "http://downloads.datastax.com/enterprise/dse-$DSE_VERSION-bin.tar.gz.md5" \
     && md5sum -c *.md5 \
     && tar -xzf "dse-$DSE_VERSION-bin.tar.gz" -C /opt \
     && cd / \
